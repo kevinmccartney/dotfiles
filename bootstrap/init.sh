@@ -4,26 +4,46 @@
 # Test dependency checker
 # Install ansible through preferred methods for various linux distros, per the documentation
 
-os='unknown'
+unameStr=$(uname -v)
+os=''
 
 checkOS() {
-    if [ "$(uname)" == "Darwin" ]; then
+    if grep Darwin <<< "$unameStr" >/dev/null; then
         os='OSX'
-    elif [ "$(uname)" == "Linux" }; then
-        os='Linux'
+    elif grep Ubuntu <<< "$unameStr" >/dev/null; then
+        os='Ubuntu'
     fi
 }
 
 depsCheck() {
-    hash git 2>/dev/null || { echo >&2 "I require git but it's not installed.  Aborting."; exit 1; }
-    hash pip 2>/dev/null || { echo >&2 "I require pip but it's not installed.  Aborting."; exit 1; }
+    if ! hash git 2>/dev/null; then
+	echo "Git is required, but it's not installed. Please install git & re-run the installer."
+	exit 1
+    elif ! hash pip 2>/dev/null; then
+	echo "Pip is required, but it's not installed. Please install pip & re-run the installer."
+	exit 1
+    fi
 }
 
 init() {
-    printf 'Preparing to install ansible & dependencies... \n'
+    echo -e "\n-----------"
+    echo "Preparing to install ansible & dependencies..."
+    echo -e "-----------\n"
+
     sleep 1
-    echo 'Please enter password:'
-    sudo pip install paramiko PyYAML Jinja2 httplib2 six ansible
+    
+    if [ "$os" == "OSX" ]; then   
+    	sudo pip install ansible
+    elif [ "$os" == "Ubuntu" ]; then 
+	sudo apt-get install software-properties-common
+	sudo apt-add-repository ppa:ansible/ansible
+	sudo apt-get update
+	sudo apt-get install ansible
+    fi
+
+    echo -e "\n----------"
+    echo "Ansible & dependencies are installed."
+    echo -e "----------\n"
 }
 
 checkOS
