@@ -1,17 +1,16 @@
 #!/usr/bin/env bash
 
 # TODO:
-# Test dependency checker
-# Install ansible through preferred methods for various linux distros, per the documentation
+# Add support for more linux distros
 
 unameStr=$(uname -v)
-os=''
+os=""
 
 checkOS() {
     if grep Darwin <<< "$unameStr" >/dev/null; then
-        os='OSX'
+        os="OSX"
     elif grep Ubuntu <<< "$unameStr" >/dev/null; then
-        os='Ubuntu'
+        os="Ubuntu"
     fi
 }
 
@@ -25,7 +24,7 @@ depsCheck() {
     fi
 }
 
-init() {
+install() {
     echo -e "\n-----------"
     echo "Preparing to install ansible & dependencies..."
     echo -e "-----------\n"
@@ -46,6 +45,25 @@ init() {
     echo -e "----------\n"
 }
 
+setup() {
+    if ! [ -d /etc/ansible ]; then
+	echo -e "Writing Ansible configurations..."
+	sudo ln -sv ../ansible /etc/ansible
+    elif [ -d /etc/ansible ]; then
+	echo "You already have ansible settings already present at /etc/ansible"
+	
+	while true; do
+    	    read -p "Do you want to overwrite these settings? [Y/n]" yn
+    	    case $yn in
+        	[Yy]* ) echo -e "Writing Ansible configurations...\n"; sudo ln -svF ../ansible /etc/ansible; break;;
+        	[Nn]* ) exit;;
+        	* ) echo "Please answer yes or no.";;
+    	    esac
+	done
+    fi	
+}
+
 checkOS
 depsCheck
-init
+install
+setup
